@@ -1,7 +1,10 @@
 from cache.cache_manager import CacheManager
-from embedding.embedder import embed
+from embedding.real_embedder import embed
 import time
 import random
+import numpy as np
+
+cache = CacheManager()
 
 def show_metrics_terminal(components, hits, misses, time_taken, tokens_saved):
     print("\n=== GPT Cache Performance ===")
@@ -15,24 +18,36 @@ def show_metrics_terminal(components, hits, misses, time_taken, tokens_saved):
 
 def simulate_prompt_flow(prompt):
     components = prompt.split(" and ")
-    cache = CacheManager()
     hits, misses = 0, 0
     tokens_saved = 0
     start_time = time.perf_counter()
 
+    print("\n--- Processing Components ---")
     for comp in components:
         vec = embed(comp)
-        if cache.check_cache(vec):
+        print(f"Vector shape: {np.array(vec).shape}")
+
+        cached = cache.check_cache(vec)
+
+        if cached:
             hits += 1
             tokens_saved += random.randint(50, 150)
+            print(f"[HIT]   \"{comp}\" → {cached}")
         else:
-            cache.add_to_cache(vec)
+            fake_response = f"This is a generated answer for: '{comp}'"
+            print(f"[MISS]  \"{comp}\" → {fake_response}")
+            cache.add_to_cache(vec, fake_response)
             misses += 1
 
-    end_time = time.perf_counter()
-    time_taken = end_time - start_time
+    time_taken = time.perf_counter() - start_time
     show_metrics_terminal(len(components), hits, misses, time_taken, tokens_saved)
 
 if __name__ == "__main__":
-    user_prompt = input("Enter your prompt: ")
-    simulate_prompt_flow(user_prompt)
+    print("Welcome to Cache-22!")
+    print("Enter 'exit' to quit.\n")
+
+    while True:
+        user_prompt = input("Enter your prompt: ")
+        if user_prompt.lower() in {"exit", "quit"}:
+            break
+        simulate_prompt_flow(user_prompt)
