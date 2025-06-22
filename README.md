@@ -1,3 +1,24 @@
-# Cache 22
+# Cache-22: ChatGPT, but faster and cheaper
 
-We can cache GPT responses to lower the necessary compute. When the user prompts the model, the prompt is first broken down into components. A similarity score is calculated for each component that determines whether the question has already been asked before in its cache. If it has, then the algorithm simply retrieves the answer from the cache and appends it to the generated response. If not, then it will use normal compute to generate it. After all responses to each component of the question is appended together, it runs it through a synthesis model which uses very little compute which is sent to the user. By not generating the response from scratch every time, this algorithm seeks to vastly reduce the compute needed to query transformers, which can lead to faster queries and lower energy costs.
+Built for Berkeley AI Hacks with the goal of dramatically reducing transformer compute by caching GPT responses at a granular level. Instead of generating an entire response from scratch each time, Cache-22 breaks down user prompts into components, checks if any were previously answered, and selectively reuses those results — saving time, tokens, and energy.
+
+## Why?
+
+Large language models are compute-hungry, expensive, and slow at scale. By reusing knowledge, Cache-22 opens the door to more sustainable and accessible AI — especially in edge settings, real-time apps, or low-resource environments.
+
+## How It Works
+
+Prompt Decomposition
+- The user prompt is broken down into semantically meaningful components (e.g., "What is gravity" and "How does the sun work").
+
+Similarity-Based Caching
+- Each component is embedded using SentenceTransformer and compared to a vector cache using FAISS.
+- If a similar question has been asked before (based on cosine or L2 similarity), its answer is reused.
+
+Selective Generation
+- If no similar component is found, the system queries the full GPT model (e.g., GPT-4) to generate a new response.
+- Otherwise, cached results are reused.
+
+Lightweight Synthesis
+- Once all component responses are collected, they are passed to a small synthesis model (even smaller than GPT-3.5) to stitch together a coherent, final reply.
+- This drastically reduces the need for full-model inference end-to-end.

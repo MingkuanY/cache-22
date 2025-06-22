@@ -3,6 +3,7 @@ from embedding.real_embedder import embed
 import time
 import random
 import numpy as np
+from llm.openai_client import decompose_prompt
 
 cache = CacheManager()
 
@@ -17,7 +18,13 @@ def show_metrics_terminal(components, hits, misses, time_taken, tokens_saved):
     print(f"Hit rate        : {hit_rate:.1f}%\n")
 
 def simulate_prompt_flow(prompt):
-    components = prompt.split(" and ")
+    # Decompose into components
+    components = decompose_prompt(prompt)
+    print("\n--- Decomposed Components ---")
+    for i, comp in enumerate(components, 1):
+        print(f"{i}. {comp}")
+    print()
+    
     hits, misses = 0, 0
     tokens_saved = 0
     start_time = time.perf_counter()
