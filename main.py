@@ -1,3 +1,5 @@
+# Only used for CLI testing, obsolete for full stack app
+
 from cache.cache_manager import CacheManager
 from embedding.real_embedder import embed
 import time
@@ -66,8 +68,7 @@ def simulate_prompt_flow(prompt):
 
         if cached:
             hits += 1
-            # Estimate tokens saved from cache hit (you can adjust this range)
-            estimated_saved = random.randint(50, 150)
+            estimated_saved = len(encoder.encode(cached))
             tokens_saved_by_cache += estimated_saved
             print(f"[HIT]   \"{comp}\" → Using cached response (estimated tokens saved: {estimated_saved})")
             responses.append(cached)
@@ -82,26 +83,21 @@ def simulate_prompt_flow(prompt):
 
     time_taken = time.perf_counter() - start_time
 
-    # Estimate full token usage if all components were generated fresh (without caching)
-    estimated_full_tokens = tokens_used_api + tokens_saved_by_cache
-
-    print("\n=== GPT Cache Performance ===")
-    print(f"Total components         : {len(components)}")
-    print(f"Cache hits               : {hits}")
-    print(f"Cache misses             : {misses}")
-    print(f"API calls made           : {api_calls}")
-    print(f"Time taken (seconds)     : {time_taken:.2f}")
-    print(f"Tokens used (API calls)  : {tokens_used_api}")
-    print(f"Estimated tokens saved   : {tokens_saved_by_cache}")
-    print(f"Estimated tokens if no cache: {estimated_full_tokens}")
-    hit_rate = (hits / len(components) * 100) if len(components) > 0 else 0
-    print(f"Cache hit rate           : {hit_rate:.1f}%")
-    print(f"Token usage reduced by   : {100 * tokens_saved_by_cache / estimated_full_tokens:.1f}%")
-    print()
-
     final_answer = gpt3_5_synthesize(responses)
-    print("=== Synthesized Final Response ===")
-    print(final_answer)
+
+    return {
+        "final_answer": final_answer,
+        "metrics": {
+            "components": len(components),
+            "hits": hits,
+            "misses": misses,
+            "api_calls": api_calls,
+            "tokens_used": tokens_used_api,
+            "tokens_saved": tokens_saved_by_cache,
+            "time_taken": time_taken,
+        }
+    }
+
 
 
 if __name__ == "__main__":
@@ -112,4 +108,8 @@ if __name__ == "__main__":
         user_prompt = input("Enter your prompt: ")
         if user_prompt.lower() in {"exit", "quit"}:
             break
-        simulate_prompt_flow(user_prompt)
+        result = simulate_prompt_flow(user_prompt)
+        print("\n=== Synthesized Final Response ===")
+        print(result["final_answer"])
+        show_metrics_terminal(**result["metrics"])
+
