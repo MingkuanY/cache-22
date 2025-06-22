@@ -19,3 +19,25 @@ def decompose_prompt(prompt: str, model="gpt-3.5-turbo"):
     )
     text = response.choices[0].message.content
     return [line.strip("- ").strip() for line in text.split("\n") if line.strip()]
+  
+def gpt4_generate_response(prompt: str, model="gpt-4-turbo"):
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.7,
+    )
+    return response.choices[0].message.content.strip()
+  
+def gpt3_5_synthesize(responses: list[str], model="gpt-3.5-turbo"):
+    prompt = (
+        "Synthesize the following responses into one coherent, concise answer:\n\n"
+        + "\n\n".join(responses)
+    )
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.3,
+    )
+    return response.choices[0].message.content.strip()

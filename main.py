@@ -3,7 +3,7 @@ from embedding.real_embedder import embed
 import time
 import random
 import numpy as np
-from llm.openai_client import decompose_prompt
+from llm.openai_client import decompose_prompt, gpt4_generate_response, gpt3_5_synthesize
 
 cache = CacheManager()
 
@@ -28,6 +28,8 @@ def simulate_prompt_flow(prompt):
     hits, misses = 0, 0
     tokens_saved = 0
     start_time = time.perf_counter()
+    
+    responses = []
 
     print("\n--- Processing Components ---")
     for comp in components:
@@ -40,14 +42,20 @@ def simulate_prompt_flow(prompt):
             hits += 1
             tokens_saved += random.randint(50, 150)
             print(f"[HIT]   \"{comp}\" → {cached}")
+            responses.append(cached)
         else:
-            fake_response = f"This is a generated answer for: '{comp}'"
-            print(f"[MISS]  \"{comp}\" → {fake_response}")
-            cache.add_to_cache(vec, fake_response)
             misses += 1
+            response = gpt4_generate_response(comp)
+            print(f"[MISS]  \"{comp}\" → {response}")
+            cache.add_to_cache(vec, response)
+            responses.append(response)
 
     time_taken = time.perf_counter() - start_time
     show_metrics_terminal(len(components), hits, misses, time_taken, tokens_saved)
+    
+    final_answer = gpt3_5_synthesize(responses)
+    print("\n=== Synthesized Final Response ===")
+    print(final_answer)
 
 if __name__ == "__main__":
     print("Welcome to Cache-22!")

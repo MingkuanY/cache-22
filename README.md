@@ -9,7 +9,7 @@ Large language models are compute-hungry, expensive, and slow at scale. By reusi
 ## How It Works
 
 Prompt Decomposition
-- The user prompt is broken down into semantically meaningful components (e.g., "What is gravity" and "How does the sun work").
+- The user prompt is broken down into semantically meaningful components using GPT-3.5-turbo (e.g., from "What is ChatGPT and how do I use it" to "What is ChatGPT?" and "How do I use ChatGPT?").
 
 Similarity-Based Caching
 - Each component is embedded using SentenceTransformer and compared to a vector cache using FAISS.
@@ -20,5 +20,5 @@ Selective Generation
 - Otherwise, cached results are reused.
 
 Lightweight Synthesis
-- Once all component responses are collected, they are passed to a small synthesis model (even smaller than GPT-3.5) to stitch together a coherent, final reply.
+- Once all component responses are collected, they are passed to a small synthesis model (GPT-3.5-turbo) to stitch together a coherent, final reply.
 - This drastically reduces the need for full-model inference end-to-end.
